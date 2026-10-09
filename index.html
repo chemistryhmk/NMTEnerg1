@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтерактивний Тренажер з Хімії: Енергетика реакцій (НМТ)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 15px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Custom smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-amber-200">
+
+    <!-- Compact Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-to-tr from-amber-500 to-orange-500 text-white rounded-xl shadow-md">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-tight">Енергетика Хімічних Реакцій</h1>
+                    <p class="text-xs font-semibold text-slate-500">Інтерактивний тренажер підготовки до НМТ</p>
+                </div>
+            </div>
+
+            <!-- Global Score Board & Controls -->
+            <div class="flex items-center gap-2.5">
+                <div class="bg-slate-100 px-3 py-1.5 rounded-xl flex items-center gap-2 border border-slate-200">
+                    <span class="text-xs font-bold text-slate-600">Бали:</span>
+                    <span id="score-display" class="text-lg font-black text-amber-600">0</span>
+                    <span class="text-xs text-slate-400">/ 100</span>
+                </div>
+
+                <button id="sound-toggle" onclick="toggleSound()" class="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition" title="Увімкнути/Вимкнути звук">
+                    <svg id="sound-icon-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                    </svg>
+                    <svg id="sound-icon-off" class="w-5 h-5 hidden text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                    </svg>
+                </button>
+
+                <button onclick="restartGame()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span class="hidden sm:inline">Спочатку</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Level Navigation Bar -->
+        <div class="bg-slate-100 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 flex justify-between">
+                <button id="nav-btn-1" onclick="switchLevel(1)" class="py-2.5 px-3 font-extrabold text-xs sm:text-sm border-b-2 border-amber-500 text-amber-700 flex items-center gap-1.5 transition">
+                    <span class="w-5 h-5 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center">1</span>
+                    Вправа 1: Екзо чи Ендо?
+                </button>
+                <button id="nav-btn-2" onclick="switchLevel(2)" class="py-2.5 px-3 font-extrabold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+                    <span class="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-xs flex items-center justify-center">2</span>
+                    Вправа 2: Детектив Помилок
+                </button>
+                <button id="nav-btn-3" onclick="switchLevel(3)" class="py-2.5 px-3 font-extrabold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+                    <span class="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-xs flex items-center justify-center">3</span>
+                    Підсумок & Шпаргалка
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 flex-grow w-full">
+
+        <!-- LEVEL 1 CONTAINER: EXOTHERMIC VS ENDOTHERMIC SORTING (3-COLUMN LAYOUT) -->
+        <section id="level-1-section" class="block space-y-4">
+            <!-- Compact Instruction Bar -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-0.5">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-amber-100 text-amber-900 font-extrabold text-[11px] rounded-md uppercase tracking-wide">Завдання 1 з 2</span>
+                        <h2 class="text-lg sm:text-xl font-black text-slate-800">Класифікація Реакцій: «Екзо» чи «Ендо»?</h2>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600">
+                        Обери картку у центральному списку, після чого клікни на потрібну зону: <span class="font-extrabold text-orange-600">«Екзотермічна»</span> або <span class="font-extrabold text-blue-600">«Ендотермічна»</span>.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-center">
+                        <span class="block text-[10px] text-slate-500 font-bold uppercase">Розподілено</span>
+                        <span id="level1-progress" class="text-base font-black text-slate-800">0 / 8</span>
+                    </div>
+
+                    <button id="check-level1-btn" onclick="checkLevel1()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm rounded-xl shadow-md transition flex items-center gap-1.5">
+                        <span>Перевірити</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3-Column Layout Grid for Desktop / Tablet View -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                
+                <!-- LEFT COLUMN: EXOTHERMIC TARGET BUCKET (4 cols) -->
+                <div id="zone-exo" onclick="dropToZone('exo')" class="lg:col-span-4 bg-gradient-to-b from-orange-50 to-red-50/40 border-2 border-dashed border-orange-300 hover:border-orange-500 rounded-2xl p-4 transition-all cursor-pointer min-h-[380px] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-orange-200 pb-2.5 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="p-2 bg-orange-500 text-white rounded-xl shadow-sm text-base">🔥</span>
+                                <div>
+                                    <h3 class="text-base font-black text-orange-950">ЕКЗОТЕРМІЧНІ</h3>
+                                    <p class="text-[11px] font-bold text-orange-700">Виділяють тепло (+Q, Δ<i>H</i> &lt; 0)</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-black bg-orange-200 text-orange-900 px-2 py-0.5 rounded-md">+Q</span>
+                        </div>
+                        <div id="exo-bucket" class="space-y-2.5">
+                            <p class="text-xs text-orange-400 font-semibold text-center py-10 italic border-2 border-dashed border-orange-200/80 rounded-xl">
+                                Натисни сюди, щоб перенести вибрану картку 🔥
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTER COLUMN: SOURCE CARDS POOL (4 cols) -->
+                <div class="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 card-shadow min-h-[380px] flex flex-col">
+                    <h3 class="text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span>🃏 Картки для сортування</span>
+                        <span class="text-[10px] text-amber-600 font-bold">Обери картку</span>
+                    </h3>
+                    
+                    <div id="source-cards-container" class="space-y-2.5 flex-grow overflow-y-auto max-h-[500px] pr-1">
+                        <!-- Cards dynamically rendered here -->
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: ENDOTHERMIC TARGET BUCKET (4 cols) -->
+                <div id="zone-endo" onclick="dropToZone('endo')" class="lg:col-span-4 bg-gradient-to-b from-blue-50 to-sky-50/40 border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-2xl p-4 transition-all cursor-pointer min-h-[380px] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-blue-200 pb-2.5 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="p-2 bg-blue-500 text-white rounded-xl shadow-sm text-base">🧊</span>
+                                <div>
+                                    <h3 class="text-base font-black text-blue-950">ЕНДОТЕРМІЧНІ</h3>
+                                    <p class="text-[11px] font-bold text-blue-700">Поглинають тепло (-Q, Δ<i>H</i> &gt; 0)</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-black bg-blue-200 text-blue-900 px-2 py-0.5 rounded-md">-Q</span>
+                        </div>
+                        <div id="endo-bucket" class="space-y-2.5">
+                            <p class="text-xs text-blue-400 font-semibold text-center py-10 italic border-2 border-dashed border-blue-200/80 rounded-xl">
+                                Натисни сюди, щоб перенести вибрану картку 🧊
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- LEVEL 2 CONTAINER: TRUE / FALSE DETECTIVE -->
+        <section id="level-2-section" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 card-shadow">
+                <span class="inline-block px-2.5 py-0.5 bg-blue-100 text-blue-900 font-extrabold text-[11px] rounded-md uppercase tracking-wide mb-1">Завдання 2 з 2</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-800">Детектив Помилок: Правда чи Хиба?</h2>
+                <p class="text-slate-600 text-xs sm:text-sm mt-0.5">
+                    Прочитай кожне твердження НМТ, проаналізуй його та визнач, чи воно є **істинним**, чи містить **хімічну помилку**.
+                </p>
+            </div>
+
+            <!-- Quiz Statement Cards Grid -->
+            <div id="quiz-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamically generated via JS -->
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="switchLevel(1)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm rounded-xl transition">
+                    ← Назад до Вправи 1
+                </button>
+                <button id="finish-quiz-btn" onclick="finishLevel2()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base rounded-xl shadow-lg transition">
+                    Завершити та переглянути підсумок →
+                </button>
+            </div>
+        </section>
+
+        <!-- LEVEL 3 CONTAINER: SUMMARY & CHEAT SHEET -->
+        <section id="level-3-section" class="hidden space-y-5">
+            <!-- Final Score Banner -->
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white p-6 sm:p-8 rounded-3xl shadow-lg text-center relative overflow-hidden">
+                <div class="relative z-10 space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-black">Чудова робота! Твій результат підготовки</h2>
+                    <div class="text-4xl sm:text-5xl font-black tracking-tight my-1">
+                        <span id="final-score-val">0</span> <span class="text-2xl text-amber-200">/ 100</span>
+                    </div>
+                    <p id="final-feedback-msg" class="text-sm sm:text-base font-semibold text-amber-100 max-w-2xl mx-auto">
+                        Ти зробила ще один впевнений крок до високого балу НМТ з хімії!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Visual Dashboard Cheat Sheet (NMT Summary without latex glitches) -->
+            <div class="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 card-shadow space-y-5">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                    <div class="p-2 bg-slate-800 text-white rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800">Головна Шпаргалка НМТ з Термохімії</h3>
+                        <p class="text-xs text-slate-500">Збережи ці ключові маркерні правила перед іспитом</p>
+                    </div>
+                </div>
+
+                <!-- Comparison Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- EXO CARD -->
+                    <div class="bg-orange-50 border-2 border-orange-200 p-4 sm:p-5 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-black text-orange-950">🔥 ЕКЗОТЕРМІЧНІ</span>
+                            <span class="px-2.5 py-1 bg-orange-200 text-orange-950 font-extrabold text-xs rounded-lg">+Q | Δ<i>H</i> &lt; 0</span>
+                        </div>
+                        <ul class="space-y-2 text-xs sm:text-sm text-orange-950 font-semibold leading-relaxed">
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-orange-600 font-bold">•</span>
+                                <span><b>Сутність:</b> Реакція виділяє тепло у довкілля (пробірка гріється).</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-orange-600 font-bold">•</span>
+                                <span><b>Енергія зв'язків:</b> <i>E</i><sub>утворення</sub> &gt; <i>E</i><sub>розриву</sub></span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-orange-600 font-bold">•</span>
+                                <span><b>Ентальпія системи:</b> Зменшується (<i>H</i><sub>реаг</sub> &gt; <i>H</i><sub>прод</sub>)</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-orange-600 font-bold">•</span>
+                                <span><b>Приклади НМТ:</b> Горіння, гашення вапна, нейтралізація, окиснення в грілках.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- ENDO CARD -->
+                    <div class="bg-blue-50 border-2 border-blue-200 p-4 sm:p-5 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-black text-blue-950">🧊 ЕНДОТЕРМІЧНІ</span>
+                            <span class="px-2.5 py-1 bg-blue-200 text-blue-950 font-extrabold text-xs rounded-lg">-Q | Δ<i>H</i> &gt; 0</span>
+                        </div>
+                        <ul class="space-y-2 text-xs sm:text-sm text-blue-950 font-semibold leading-relaxed">
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span><b>Сутність:</b> Поглинають тепло із середовища (потребують нагрівання).</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span><b>Енергія зв'язків:</b> <i>E</i><sub>розриву</sub> &gt; <i>E</i><sub>утворення</sub></span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span><b>Ентальпія системи:</b> Зростає (<i>H</i><sub>реаг</sub> &lt; <i>H</i><sub>прод</sub>)</span>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-blue-600 font-bold">•</span>
+                                <span><b>Приклади НМТ:</b> Фотосинтез, термічний розклад (CaCO<sub>3</sub>, Cu(OH)<sub>2</sub>), охолоджувальні пакети.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Rules Box -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                        <span class="text-amber-500 text-lg">💡</span>
+                        3 Золоті правила для розрахунків НМТ:
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed">
+                        <li><b>Прості речовини:</b> Стандартна ентальпія утворення простих речовин (O<sub>2(г)</sub>, N<sub>2(г)</sub>, Fe<sub>(т)</sub>, C<sub>(графіт)</sub>) <u>завжди дорівнює 0 кДж/моль</u>.</li>
+                        <li><b>Перевертання рівняння:</b> Змінює знак Δ<i>H</i> або <i>Q</i> на протилежний.</li>
+                        <li><b>Агрегатний стан має значення:</b> Утворення H<sub>2</sub>O<sub>(р)</sub> та H<sub>2</sub>O<sub>(г)</sub> має РІЗНИЙ тепловий ефект через фазовий перехід.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-4 pt-2">
+                <button onclick="restartGame()" class="px-8 py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-base rounded-2xl shadow-lg transition">
+                    Пройти тренажер ще раз 🔄
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-slate-500 text-xs font-semibold">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>Інтерактивний тренажер підготовки до НМТ з хімії • Енергетика хімічних реакцій</p>
+        </div>
+    </footer>
+
+    <script>
+        // Audio Synthesizer setup
+        let soundEnabled = true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(450, now);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'wrong') {
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(180, now + 0.1);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'fanfare') {
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    osc.frequency.setValueAtTime(880, now + 0.3);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                }
+            } catch(e) {
+                console.log("Audio play suppressed");
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon-on').classList.toggle('hidden', !soundEnabled);
+            document.getElementById('sound-icon-off').classList.toggle('hidden', soundEnabled);
+        }
+
+        // Clean HTML formatting without latex codes
+        const sortingItemsData = [
+            {
+                id: 's1',
+                title: 'Реакція фотосинтезу в листі',
+                formula: '6CO<sub>2</sub> + 6H<sub>2</sub>O → C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> + 6O<sub>2</sub>',
+                type: 'endo',
+                icon: '🌿☀️',
+                tag: 'Асиміляція сонця'
+            },
+            {
+                id: 's2',
+                title: 'Горіння метану у газовій конфорці',
+                formula: 'CH<sub>4(г)</sub> + 2O<sub>2(г)</sub> → CO<sub>2(г)</sub> + 2H<sub>2</sub>O<sub>(г)</sub> + 890 кДж',
+                type: 'exo',
+                icon: '🔥',
+                tag: 'Тепло виділяється'
+            },
+            {
+                id: 's3',
+                title: 'Кишенькова хімічна грілка для рук',
+                formula: '4Fe<sub>(т)</sub> + 3O<sub>2(г)</sub> → 2Fe<sub>2</sub>O<sub>3(т)</sub> + <i>Q</i>',
+                type: 'exo',
+                icon: '♨️',
+                tag: 'Окиснення заліза'
+            },
+            {
+                id: 's4',
+                title: 'Миттєвий охолоджувальний пакет',
+                formula: 'NH<sub>4</sub>NO<sub>3(т)</sub> → NH<sub>4</sub><sup>+</sup><sub>(р-н)</sub> + NO<sub>3</sub><sup>-</sup><sub>(р-н)</sub> - <i>Q</i>',
+                type: 'endo',
+                icon: '🧊',
+                tag: 'Падіння температури'
+            },
+            {
+                id: 's5',
+                title: 'Термічний розклад вапняку',
+                formula: 'CaCO<sub>3(т)</sub> → CaO<sub>(т)</sub> + CO<sub>2(г)</sub> - 178 кДж',
+                type: 'endo',
+                icon: '🧱',
+                tag: 'Постійний нагрів'
+            },
+            {
+                id: 's6',
+                title: 'Гашення вапна водою',
+                formula: 'CaO<sub>(т)</sub> + H<sub>2</sub>O<sub>(р)</sub> → Ca(OH)<sub>2(т)</sub> + 65,1 кДж',
+                type: 'exo',
+                icon: '💧🔥',
+                tag: 'Розігрів &gt; 100°C'
+            },
+            {
+                id: 's7',
+                title: 'Енергія утворення зв\'язків більша за розрив',
+                formula: '<i>E</i><sub>утворення</sub> &gt; <i>E</i><sub>розриву</sub>',
+                type: 'exo',
+                icon: '⚡',
+                tag: 'Співвідношення'
+            },
+            {
+                id: 's8',
+                title: 'Запас енергії речовин зростає',
+                formula: '<i>H</i><sub>продуктів</sub> &gt; <i>H</i><sub>реагентів</sub> (Δ<i>H</i> &gt; 0)',
+                type: 'endo',
+                icon: '📈',
+                tag: 'Зміна ентальпії'
+            }
+        ];
+
+        // Clean Quiz Questions without latex markup
+        const quizQuestionsData = [
+            {
+                id: 'q1',
+                statement: '«Якщо хімічна реакція відбулася у пробірці, і пробірка стала гарячою на дотик, це означає, що ΔH > 0»',
+                correct: false,
+                explanation: 'Хиба! Якщо пробірка стала гарячою, це екзотермічна реакція (+Q) — тепло виділилося у середовище. Отже, внутрішній запас енергії самих речовин (ентальпія) зменшився (ΔH < 0). Пам\'ятай формулу НМТ: Q = -ΔH!'
+            },
+            {
+                id: 'q2',
+                statement: '«Стандартна ентальпія утворення простих речовин, таких як кисень O₂ або залізо Fe, завжди дорівнює 0»',
+                correct: true,
+                explanation: 'Істина! За термохімічною угодою, ентальпія утворення простих речовин у їх стійкому агрегатному стані прийнята за 0 кДж/моль. Це ключова підказка для розрахунків на НМТ.'
+            },
+            {
+                id: 'q3',
+                statement: '«Тепловий ефект реакції утворення рідкої води H₂O(р) та водяної пари H₂O(г) з кисню і водню є абсолютно однаковим»',
+                correct: false,
+                explanation: 'Хиба! Агрегатні стани речовин мають вирішальне значення! Частина енергії додатково виділяється при конденсації пари у рідину. Для рідкої води виділяється 285,8 кДж, а для пари — 241,8 кДж.'
+            },
+            {
+                id: 'q4',
+                statement: '«Якщо термохімічне рівняння перевернути у зворотному напрямку, чисельне значення теплового ефекту не зміниться, але знак ΔH зміниться на протилежний»',
+                correct: true,
+                explanation: 'Істина! Згідно із законом збереження енергії, якщо пряма реакція є екзотермічною (ΔH = -X), то зворотна реакція буде ендотермічною (ΔH = +X).'
+            }
+        ];
+
+        let selectedCardId = null;
+        let cardAssignments = {}; // cardId -> 'exo' | 'endo'
+        let quizAnswers = {}; // questionId -> true | false
+        let totalScore = 0;
+        let level1Checked = false;
+
+        window.onload = function() {
+            renderLevel1Cards();
+            renderQuizQuestions();
+            updateScoreUI();
+        };
+
+        function switchLevel(lvl) {
+            playSound('click');
+            document.getElementById('level-1-section').classList.toggle('hidden', lvl !== 1);
+            document.getElementById('level-2-section').classList.toggle('hidden', lvl !== 2);
+            document.getElementById('level-3-section').classList.toggle('hidden', lvl !== 3);
+
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`nav-btn-${i}`);
+                if (i === lvl) {
+                    btn.className = "py-2.5 px-3 font-extrabold text-xs sm:text-sm border-b-2 border-amber-500 text-amber-700 flex items-center gap-1.5 transition";
+                } else {
+                    btn.className = "py-2.5 px-3 font-extrabold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition";
+                }
+            }
+
+            if (lvl === 3) {
+                calculateFinalResults();
+            }
+        }
+
+        // --- LEVEL 1 LOGIC ---
+        function renderLevel1Cards() {
+            const sourceContainer = document.getElementById('source-cards-container');
+            const exoBucket = document.getElementById('exo-bucket');
+            const endoBucket = document.getElementById('endo-bucket');
+
+            sourceContainer.innerHTML = '';
+            
+            let exoCardsHtml = '';
+            let endoCardsHtml = '';
+            let unassignedCount = 0;
+
+            sortingItemsData.forEach(item => {
+                const assigned = cardAssignments[item.id];
+                const isSelected = selectedCardId === item.id;
+
+                const cardHtml = `
+                    <div id="card-${item.id}" onclick="selectCard('${item.id}', event)" 
+                        class="p-3 rounded-xl border-2 bg-white card-shadow cursor-pointer transition-all text-left relative ${
+                            isSelected ? 'border-amber-500 ring-2 ring-amber-200 scale-[1.01]' : 'border-slate-200 hover:border-slate-300'
+                        } ${level1Checked ? (assigned === item.type ? 'border-emerald-500 bg-emerald-50/60' : 'border-rose-400 bg-rose-50/60') : ''}">
+                        
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">${item.icon}</span>
+                                <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm leading-tight">${item.title}</h4>
+                            </div>
+                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">${item.tag}</span>
+                        </div>
+
+                        <div class="mt-1.5 text-xs font-semibold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/80 text-slate-700">
+                            ${item.formula}
+                        </div>
+
+                        ${level1Checked ? `
+                            <div class="mt-1.5 text-[11px] font-bold ${assigned === item.type ? 'text-emerald-700' : 'text-rose-700'}">
+                                ${assigned === item.type ? '✓ Правильно!' : `✗ Невірно! Потрібно: ${item.type === 'exo' ? 'Екзотермічна' : 'Ендотермічна'}`}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                if (!assigned) {
+                    sourceContainer.innerHTML += cardHtml;
+                    unassignedCount++;
+                } else if (assigned === 'exo') {
+                    exoCardsHtml += cardHtml;
+                } else if (assigned === 'endo') {
+                    endoCardsHtml += cardHtml;
+                }
+            });
+
+            if (unassignedCount === 0 && !level1Checked) {
+                sourceContainer.innerHTML = `
+                    <div class="py-8 text-center text-slate-500 font-bold bg-slate-50 rounded-xl border border-dashed border-slate-300 text-xs">
+                        Всі картки розподілені! Натисніть кнопку «Перевірити» вище 🎉
+                    </div>
+                `;
+            }
+
+            if (exoCardsHtml) {
+                exoBucket.innerHTML = exoCardsHtml;
+            } else {
+                exoBucket.innerHTML = `
+                    <p class="text-xs text-orange-400 font-semibold text-center py-10 italic border-2 border-dashed border-orange-200/80 rounded-xl">
+                        Натисни сюди, щоб перенести вибрану картку 🔥
+                    </p>
+                `;
+            }
+
+            if (endoCardsHtml) {
+                endoBucket.innerHTML = endoCardsHtml;
+            } else {
+                endoBucket.innerHTML = `
+                    <p class="text-xs text-blue-400 font-semibold text-center py-10 italic border-2 border-dashed border-blue-200/80 rounded-xl">
+                        Натисни сюди, щоб перенести вибрану картку 🧊
+                    </p>
+                `;
+            }
+
+            const assignedTotal = Object.keys(cardAssignments).length;
+            document.getElementById('level1-progress').innerText = `${assignedTotal} / 8`;
+        }
+
+        function selectCard(id, e) {
+            e.stopPropagation();
+            playSound('click');
+            if (selectedCardId === id) {
+                selectedCardId = null;
+            } else {
+                selectedCardId = id;
+            }
+            renderLevel1Cards();
+        }
+
+        function dropToZone(zoneType) {
+            if (!selectedCardId) return;
+            playSound('click');
+            cardAssignments[selectedCardId] = zoneType;
+            selectedCardId = null;
+            renderLevel1Cards();
+        }
+
+        function checkLevel1() {
+            const assignedCount = Object.keys(cardAssignments).length;
+            if (assignedCount < 8) {
+                showToast("Будь ласка, розподіли всі 8 карток перед перевіркою!");
+                return;
+            }
+
+            level1Checked = true;
+            let correctCount = 0;
+
+            sortingItemsData.forEach(item => {
+                if (cardAssignments[item.id] === item.type) {
+                    correctCount++;
+                }
+            });
+
+            const levelScore = Math.round((correctCount / 8) * 50);
+            updateScore(levelScore, 'level1');
+
+            if (correctCount === 8) {
+                playSound('fanfare');
+            } else {
+                playSound('wrong');
+            }
+
+            renderLevel1Cards();
+        }
+
+        // --- LEVEL 2 LOGIC ---
+        function renderQuizQuestions() {
+            const container = document.getElementById('quiz-cards-container');
+            container.innerHTML = '';
+
+            quizQuestionsData.forEach((q, index) => {
+                const userAns = quizAnswers[q.id];
+                const isAnswered = userAns !== undefined;
+                const isCorrect = isAnswered && userAns === q.correct;
+
+                const qCard = `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 card-shadow space-y-3 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-black text-sm flex items-center justify-center shrink-0">
+                                    ${index + 1}
+                                </span>
+                                <p class="text-sm sm:text-base font-bold text-slate-800 leading-snug">
+                                    ${q.statement}
+                                </p>
+                            </div>
+
+                            <!-- Answer Buttons -->
+                            <div class="flex items-center gap-3 pt-1">
+                                <button onclick="answerQuiz('${q.id}', true)" 
+                                    class="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition flex items-center justify-center gap-1.5 ${
+                                        userAns === true 
+                                        ? (q.correct ? 'bg-emerald-600 text-white shadow-md' : 'bg-rose-600 text-white shadow-md')
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                                    }">
+                                    <span>ІСТИНА (Правда)</span>
+                                    <span>✓</span>
+                                </button>
+
+                                <button onclick="answerQuiz('${q.id}', false)" 
+                                    class="flex-1 py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm transition flex items-center justify-center gap-1.5 ${
+                                        userAns === false 
+                                        ? (!q.correct ? 'bg-emerald-600 text-white shadow-md' : 'bg-rose-600 text-white shadow-md')
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                                    }">
+                                    <span>ХИБА (Помилка)</span>
+                                    <span>✗</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Explanation Box -->
+                        ${isAnswered ? `
+                            <div class="p-3 rounded-xl border text-xs ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : 'bg-rose-50 border-rose-200 text-rose-950'} transition-all space-y-1">
+                                <div class="font-extrabold flex items-center gap-1">
+                                    <span>${isCorrect ? '🎉 Правильно!' : '⚠️ Зверни увагу!'}</span>
+                                </div>
+                                <p class="font-medium leading-normal">${q.explanation}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                container.innerHTML += qCard;
+            });
+        }
+
+        function answerQuiz(qId, val) {
+            quizAnswers[qId] = val;
+            const q = quizQuestionsData.find(x => x.id === qId);
+            if (val === q.correct) {
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+            renderQuizQuestions();
+        }
+
+        function finishLevel2() {
+            const answeredCount = Object.keys(quizAnswers).length;
+            if (answeredCount < quizQuestionsData.length) {
+                showToast("Дай відповідь на всі питання перед підсумком!");
+                return;
+            }
+
+            let correctCount = 0;
+            quizQuestionsData.forEach(q => {
+                if (quizAnswers[q.id] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            const levelScore = Math.round((correctCount / 4) * 50);
+            updateScore(levelScore, 'level2');
+
+            switchLevel(3);
+        }
+
+        // --- GLOBAL SCORE & RESULTS ---
+        let levelScores = { level1: 0, level2: 0 };
+
+        function updateScore(val, levelKey) {
+            levelScores[levelKey] = val;
+            totalScore = levelScores.level1 + levelScores.level2;
+            updateScoreUI();
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-display').innerText = totalScore;
+        }
+
+        function calculateFinalResults() {
+            document.getElementById('final-score-val').innerText = totalScore;
+            const msgEl = document.getElementById('final-feedback-msg');
+
+            if (totalScore >= 90) {
+                msgEl.innerText = "Фантастичний результат! Ти ідеально орієнтуєшся в енергетиці реакцій та законах термохімії для НМТ! 🌟🏆";
+                playSound('fanfare');
+            } else if (totalScore >= 70) {
+                msgEl.innerText = "Чудовий рівень знань! Невелика практика із розрахунковими задачами — і твій бал буде максимальним! 👍";
+                playSound('correct');
+            } else {
+                msgEl.innerText = "Гарна спроба! Переглянь підсумкову шпаргалку нижче, щоб закрити прогалини і спробуй ще раз! 📚";
+            }
+        }
+
+        function restartGame() {
+            playSound('click');
+            selectedCardId = null;
+            cardAssignments = {};
+            quizAnswers = {};
+            levelScores = { level1: 0, level2: 0 };
+            totalScore = 0;
+            level1Checked = false;
+
+            updateScoreUI();
+            renderLevel1Cards();
+            renderQuizQuestions();
+            switchLevel(1);
+        }
+
+        // Toast Notification Helper
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white font-bold px-5 py-3 rounded-xl shadow-xl z-50 text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 transform translate-y-3 opacity-0';
+            toast.innerHTML = `
+                <span>💡</span>
+                <span>${msg}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-3', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+    </script>
+</body>
+</html>
